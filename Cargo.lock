@@ -1126,10 +1126,6 @@ dependencies = [
 [[package]]
 name = "bevy_tuto"
 version = "0.1.0"
-dependencies = [
- "bevy",
- "rand",
-]
 
 [[package]]
 name = "bevy_ui"
@@ -3192,6 +3188,14 @@ dependencies = [
  "rustix",
  "tracing",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "pong"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand",
 ]
 
 [[package]]
