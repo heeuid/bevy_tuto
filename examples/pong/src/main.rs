@@ -250,14 +250,16 @@ fn collide_with_side(ball: BoundingCircle, wall: Aabb2d) -> Option<Collision> {
 }
 
 fn handle_collisions(
-    mut ball: Query<(&mut Velocity, &Position, &Shape), With<Ball>>,
+    mut ball_query: Query<(&mut Velocity, &mut Position, &Shape), With<Ball>>,
     other_things: Query<(&Position, &Shape), Without<Ball>>,
 ) {
-    if let Ok((mut ball_velocity, ball_position, ball_shape)) = ball.get_single_mut() {
+    if let Ok((mut ball_velocity, mut ball_position, ball_shape)) = ball_query.get_single_mut() {
         for (position, shape) in &other_things {
+            let mut ball = BoundingCircle::new(ball_position.0, ball_shape.0.x);
+            let wall = Aabb2d::new(position.0, shape.0 / 2.);
             if let Some(collision) = collide_with_side(
-                BoundingCircle::new(ball_position.0, ball_shape.0.x),
-                Aabb2d::new(position.0, shape.0 / 2.),
+                ball,
+                wall,
             ) {
                 match collision {
                     Collision::Left | Collision::Right => {
@@ -267,6 +269,17 @@ fn handle_collisions(
                         ball_velocity.0.y *= -1.;
                     }
                 }
+                
+                // Defence code to prevent ball jittering at the paddle's end
+                loop {
+                    let closest_point = wall.closest_point(ball.center());
+                    let dist = ball.center().distance(closest_point);
+                    if dist > ball.radius() {
+                        break;
+                    }
+                    ball.center += (dist / ball_velocity.0.length()) * ball_velocity.0;
+                }
+                ball_position.0 = ball.center;
             }
         }
     }
